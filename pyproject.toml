@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "spotstac"
+version = "0.1.0"
+description = ""
+authors = ["James Banting <jbanting@sparkgeo.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+fiona = "^1.8.13"
+pyproj = "^2.4.2"
+pre-commit = "^1.21.0"
+pystac = {git = "https://github.com/azavea/pystac.git", rev = "develop"}
+shapely = "^1.6.4"
+boto3 = "^1.11.9"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
