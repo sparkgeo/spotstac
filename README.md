@@ -7,6 +7,13 @@
 
 
 ## Installation
+Install `poetry` package manager for python -> https://hackersandslackers.com/python-poetry-package-manager/
+
+If developing, install pre-commit -> https://pre-commit.com/
+
+run `poetry add` to install dependencies.
+
+STAC away!
 
 ### Notes:
 - In accordance with the STAC spec geometries have been transformed to `WGS84`.
