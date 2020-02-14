@@ -13,20 +13,24 @@ from pystac import (
 
 SPOT_SENSOR = {"S4": "SPOT 4", "S5": "SPOT 5"}
 
-GeobaseCatalog = Catalog(
-    id="Geobase", description="STAC Catalog for Geobase", title=None, stac_extensions=None
-)
-
 SpotProviders = [
     Provider(
         "Government of Canada",
-        "Natural Resources Canada Centre for Topographic Information",
+        "Natural Resources; Strategic Policy and Results Sector",
         ["licensor", "processor"],
-        "www.geobase.ca",
+        "https://open.canada.ca/data/en/dataset/d799c202-603d-4e5c-b1eb-d058803f80f9",
     ),
-    Provider("Sparkgeo", "info@sparkegeo.com", ["processor", "host"], "www.sparkgeo.com"),
     Provider(
-        "PCI Geomatics", "info@pci.com", ["processor", "host"], "www.pcigeomatics.com"
+        "Sparkgeo",
+        "info@sparkegeo.com",
+        ["processor", "host"],
+        "https://www.sparkgeo.com",
+    ),
+    Provider(
+        "PCI Geomatics",
+        "info@pci.com",
+        ["processor", "host"],
+        "https://www.pcigeomatics.com",
     ),
 ]
 
@@ -35,24 +39,13 @@ SpotExtents = Extent(
     TemporalExtent(
         [
             [
-                datetime.strptime("2005-01-01", "%Y-%m-%d"),
-                datetime.strptime("2010-01-01", "%Y-%m-%d"),
+                datetime.strptime("2005-05-01", "%Y-%m-%d"),
+                datetime.strptime("2010-10-31", "%Y-%m-%d"),
             ]
         ]
     ),
 )
 
-OrthoCollection = Collection(
-    id="canada_spot_orthoimages",
-    description="Orthoimages of Canada 2005-2010",
-    extent=SpotExtents,
-    title=None,
-    stac_extensions=None,
-    license="Proprietery",
-    keywords="SPOT, Geobase, orthoimages",
-    version="0.0.1",
-    providers=SpotProviders,
-)
 
 GeobaseLicense = Link(
     "license",
@@ -61,8 +54,48 @@ GeobaseLicense = Link(
     "Open Government Licence Canada",
 )
 
+### STAC ORGANIZATION ###
+
+GeobaseCatalog = Catalog(
+    id="Geobase", description="STAC Catalog for Geobase", title=None, stac_extensions=None
+)
+
+OrthoCatalog = Catalog(
+    id="canada_spot_orthoimages",
+    description="Orthoimages of Canada 2005-2010",
+    title=None,
+    stac_extensions=None,
+)
+
+SPOT4Collection = Collection(
+    id="canada_spot4_orthoimages",
+    description="SPOT 4 Orthoimages of Canada 2005-2010",
+    extent=SpotExtents,
+    title="SPOT 4 Orthoimages of Canada 2005-2010",
+    stac_extensions=None,
+    license="Proprietery",
+    keywords="SPOT, Geobase, orthoimages",
+    version="0.0.2",
+    providers=SpotProviders,
+)
+
+SPOT5Collection = Collection(
+    id="canada_spot5_orthoimages",
+    description="SPOT 5 Orthoimages of Canada 2005-2010",
+    extent=SpotExtents,
+    title="SPOT 5 Orthoimages of Canada 2005-2010",
+    stac_extensions=None,
+    license="Proprietery",
+    keywords="SPOT, Geobase, orthoimages",
+    version="0.0.2",
+    providers=SpotProviders,
+)
+
 
 def build_catalog():
-    OrthoCollection.add_link(GeobaseLicense)
-    GeobaseCatalog.add_child(OrthoCollection)
+    GeobaseCatalog.add_child(OrthoCatalog)
+    SPOT5Collection.add_link(GeobaseLicense)
+    SPOT4Collection.add_link(GeobaseLicense)
+    OrthoCatalog.add_child(SPOT4Collection)
+    OrthoCatalog.add_child(SPOT5Collection)
     return GeobaseCatalog

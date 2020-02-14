@@ -1,6 +1,8 @@
 import os
 from ftplib import FTP
 
+import tomic
+
 
 class GeobaseSpotFTP:
     """

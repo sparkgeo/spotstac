@@ -1,3 +1,4 @@
+import tomic
 from spotstac import __version__
 
 

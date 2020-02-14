@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 
 import fiona
 from pyproj import Proj, Transformer, transform
@@ -16,12 +17,11 @@ from pystac import (
 )
 from shapely.geometry import box
 from shapely.ops import transform as shapely_transform
+
+import tomic
 from spotstac.geobase_ftp import GeobaseSpotFTP
 from spotstac.stac_templates import build_catalog
-from spotstac.utils import bbox, read_remote_stacs, transform_geom, write_remote_stacs
-
-STAC_IO.read_text_method = read_remote_stacs
-STAC_IO.write_text_method = write_remote_stacs
+from spotstac.utils import bbox, transform_geom
 
 GeobaseSTAC = build_catalog()
 
@@ -47,23 +47,42 @@ def create_item(name, feature, collection):
     return item
 
 
+def build_collections(src, spot_sensor):
+    with NamedTemporaryFile(suffix=".shp", delete=False) as f:
+        with fiona.open(
+            f, "w", driver=src.driver, crs=src.crs, schema=src.schema
+        ) as subset:
+            for i in src:
+                if i["properties"].get("NAME").startswith(spot_sensor):
+                    subset.write(i)
+    return subset
+
+
 def build_items(index_geom):
     """
-    index_geom: fioan readable file (ex, shapefile)
+    index_geom: fiona readable file (ex, shapefile)
     Build the STAC items
     """
+
     with fiona.open(index_geom) as src:
         src_crs = Proj(src.crs)
         dest_crs = Proj("WGS84")
-
-        extent = box(*src.bounds)
-
         project = Transformer.from_proj(src_crs, dest_crs)
-        catalog_bbox = shapely_transform(project.transform, extent)
 
-        # build spatial extent for collection
-        ortho_collection = GeobaseSTAC.get_child("canada_spot_orthoimages")
-        ortho_collection.extent.spatial = SpatialExtent([list(catalog_bbox.bounds)])
+        # Get differnt SPOT data
+        s4 = build_collections(src, "S4")
+        s5 = build_collections(src, "S4")
+
+        # build spatial extent for collections
+        s4_extent = box(**s4.bounds)
+        s4_bbox = shapely_transform(project.transform, s4_extent)
+        SPOT4Collection = GeobaseSTAC.get_child("canada_spot4_orthoimages")
+        SPOT4Collection.extent.spatial = SpatialExtent([list(s4_bbox.bounds)])
+
+        s5_extent = box(**s5.bounds)
+        s5_bbox = shapely_transform(project.transform, s5_extent)
+        SPOT5Collection = GeobaseSTAC.get_child("canada_spot5_orthoimages")
+        SPOT5Collection.extent.spatial = SpatialExtent([list(s5_bbox.bounds)])
 
         geobase = GeobaseSpotFTP()
 
@@ -77,7 +96,10 @@ def build_items(index_geom):
             name = feature_out["properties"]["NAME"]
             sensor = SPOT_SENSOR[name[:2]]
 
-            new_item = create_item(name, feature_out, ortho_collection)
+            if name[:2] == "S4":
+                new_item = create_item(name, feature_out, SPOT4Collection)
+            else:
+                new_item = create_item(name, feature_out, SPOT5Collection)
 
             for f in geobase.list_contents(name):
                 # Add data to the asset
@@ -96,11 +118,20 @@ def build_items(index_geom):
                 ),
             )
 
-            ortho_collection.add_item(new_item)
+            if name[:2] == "S4":
+                SPOT4Collection.add_item(new_item)
+                # TODO: Parse out each year and add them to a separete catalog
+            else:
+                SPOT5Collection.add_item(new_item)
 
             count += 1
             print(f"{count}... {new_item.id}")
 
 
-GeobaseSTAC.normalize_and_save("s3://geobase-spot", CatalogType.RELATIVE_PUBLISHED)
+build_items(
+    "/Users/james/PycharmProjects/Prescient/PCI/NAPL/geobase_index/GeoBase_Orthoimage_Index/GeoBase_Orthoimage_Index.shp"
+)
+GeobaseSTAC.normalize_and_save(
+    "https://geobase-spot-dev.s3.amazonaws.com", CatalogType.ABSOLUTE_PUBLISHED
+)
 print("Finished")
