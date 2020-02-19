@@ -56,43 +56,46 @@ GeobaseLicense = Link(
 
 ### STAC ORGANIZATION ###
 
-GeobaseCatalog = Catalog(
-    id="Geobase", description="STAC Catalog for Geobase", title=None, stac_extensions=None
-)
-
-OrthoCatalog = Catalog(
-    id="canada_spot_orthoimages",
-    description="Orthoimages of Canada 2005-2010",
-    title=None,
-    stac_extensions=None,
-)
-
-SPOT4Collection = Collection(
-    id="canada_spot4_orthoimages",
-    description="SPOT 4 Orthoimages of Canada 2005-2010",
-    extent=SpotExtents,
-    title="SPOT 4 Orthoimages of Canada 2005-2010",
-    stac_extensions=None,
-    license="Proprietery",
-    keywords="SPOT, Geobase, orthoimages",
-    version="0.0.2",
-    providers=SpotProviders,
-)
-
-SPOT5Collection = Collection(
-    id="canada_spot5_orthoimages",
-    description="SPOT 5 Orthoimages of Canada 2005-2010",
-    extent=SpotExtents,
-    title="SPOT 5 Orthoimages of Canada 2005-2010",
-    stac_extensions=None,
-    license="Proprietery",
-    keywords="SPOT, Geobase, orthoimages",
-    version="0.0.2",
-    providers=SpotProviders,
-)
-
 
 def build_catalog():
+    GeobaseCatalog = Catalog(
+        id="Geobase",
+        description="STAC Catalog for Geobase",
+        title="test",
+        stac_extensions=None,
+    )
+
+    OrthoCatalog = Catalog(
+        id="canada_spot_orthoimages",
+        description="Orthoimages of Canada 2005-2010",
+        title="TEST",
+        stac_extensions=None,
+    )
+
+    SPOT4Collection = Collection(
+        id="canada_spot4_orthoimages",
+        description="SPOT 4 Orthoimages of Canada 2005-2010",
+        extent=SpotExtents,
+        title="SPOT 4 Orthoimages of Canada 2005-2010",
+        stac_extensions=None,
+        license="Proprietery",
+        keywords="SPOT, Geobase, orthoimages",
+        version="0.0.2",
+        providers=SpotProviders,
+    )
+
+    SPOT5Collection = Collection(
+        id="canada_spot5_orthoimages",
+        description="SPOT 5 Orthoimages of Canada 2005-2010",
+        extent=SpotExtents,
+        title="SPOT 5 Orthoimages of Canada 2005-2010",
+        stac_extensions=None,
+        license="Proprietery",
+        keywords="SPOT, Geobase, orthoimages",
+        version="0.0.2",
+        providers=SpotProviders,
+    )
+
     GeobaseCatalog.add_child(OrthoCatalog)
     SPOT5Collection.add_link(GeobaseLicense)
     SPOT4Collection.add_link(GeobaseLicense)

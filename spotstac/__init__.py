@@ -6,8 +6,6 @@ from urllib.parse import urlparse
 import boto3
 from pystac import STAC_IO
 
-import tomic
-
 
 def read_remote_stacs(uri):
     """

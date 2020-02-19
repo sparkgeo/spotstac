@@ -15,8 +15,6 @@ from pystac import (
     TemporalExtent,
 )
 
-import tomic
-
 
 def read_remote_stacs(uri):
     """
@@ -31,6 +29,7 @@ def read_remote_stacs(uri):
         obj = s3.Object(bucket, key)
         return obj.get()["Body"].read().decode("utf-8")
     if parsed.scheme in ["http", "https"]:
+        print(parsed)
         with urllib.request.urlopen(uri) as url:
             stac = json.loads(url.read().decode())
             return stac
