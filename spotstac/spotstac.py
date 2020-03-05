@@ -6,11 +6,13 @@ import fiona
 from pyproj import Proj, Transformer, transform
 from pystac import (
     STAC_IO,
+    EOAsset,
     Asset,
     Catalog,
     CatalogType,
     Collection,
     Item,
+    EOItem,
     MediaType,
     SpatialExtent,
     utils,
@@ -18,9 +20,9 @@ from pystac import (
 from shapely.geometry import box
 from shapely.ops import transform as shapely_transform
 
-from geobase_ftp import GeobaseSpotFTP
-from stac_templates import build_catalog
-from utils import bbox, transform_geom, read_remote_stacs, write_remote_stacs
+from .geobase_ftp import GeobaseSpotFTP
+from .stac_templates import build_catalog, SPOT_4_COMMON, SPOT_5_COMMON
+from .utils import bbox, transform_geom, read_remote_stacs, write_remote_stacs
 
 
 # STAC_IO.read_text_method = read_remote_stacs
@@ -35,7 +37,7 @@ class Geobase(object):
         self.index_geom = index_geom
         self.geobase_stac = build_catalog()
 
-    def create_item(self, name, feature, collection):
+    def create_item(self, name, feature, collection, bands, instrument, platform, gsd):
         """
         name: SPOT ID
         feature: geojson feature
@@ -43,13 +45,18 @@ class Geobase(object):
         Create a STAC item for SPOT
         """
 
-        item = Item(
+        item = EOItem(
             id=name,
             geometry=feature["geometry"],
             bbox=list(bbox(feature)),
             properties={},
             datetime=datetime.strptime(name[14:22], "%Y%m%d"),
             collection=collection,
+            gsd=gsd,
+            constellation="SPOT",
+            platform=platform,
+            instrument=instrument,
+            bands=bands,
         )
         return item
 
@@ -113,15 +120,25 @@ class Geobase(object):
 
                 # Build item with appropriate references
                 if name[:2] == "S4":
-                    new_item = self.create_item(name, feature_out, SPOT4Collection)
+                    new_item = self.create_item(
+                        name, feature_out, SPOT4Collection, **SPOT_4_COMMON
+                    )
                 else:
-                    new_item = self.create_item(name, feature_out, SPOT5Collection)
+                    new_item = self.create_item(
+                        name, feature_out, SPOT5Collection, **SPOT_5_COMMON
+                    )
 
                 for f in geobase.list_contents(name):
                     # Add data to the asset
-                    spot_file = Asset(
-                        href=f"http://{f}", title=None, media_type="application/zip"
+                    spot_file = EOAsset(
+                        href=f"http://{f}",
+                        title=None,
+                        media_type="application/zip",
+                        bands=list(range(1, 4)),
                     )
+
+                    if ("p10") in f:
+                        spot_file.bands = ["0"]
 
                     file_key = f[-13:-4]  # image type
                     new_item.add_asset(file_key, spot_file)
@@ -147,12 +164,12 @@ class Geobase(object):
                             title=f"{name[:2]}_{name[14:-4:]}",
                             stac_extensions=None,
                         )
+                        SPOT4Collection.add_child(year_cat)
                     else:
                         year_cat = SPOT4Collection.get_child(
                             f"{name[:2]}_{name[14:-4]}", True
                         )
                     year_cat.add_item(new_item)
-                    SPOT4Collection.add_child(year_cat)
                 else:
                     if (
                         SPOT5Collection.get_child(f"{name[:2]}_{name[14:-4]}", True)
@@ -164,34 +181,12 @@ class Geobase(object):
                             title=f"{name[:2]}_{name[14:-4]}",
                             stac_extensions=None,
                         )
+                        SPOT5Collection.add_child(year_cat)
                     else:
                         year_cat = SPOT5Collection.get_child(
                             f"{name[:2]}_{name[14:-4]}", True
                         )
                     year_cat.add_item(new_item)
-                    SPOT5Collection.add_child(year_cat)
-
                 count += 1
                 print(f"{count}... {new_item.id}")
         return self.geobase_stac
-
-
-# build_items(
-#     "/Users/james/PycharmProjects/Prescient/PCI/NAPL/geobase_index/GeoBase_Orthoimage_Index/GeoBase_Orthoimage_Index.shp"
-# )
-a = Geobase(
-    "/Users/james/PycharmProjects/Prescient/PCI/NAPL/geobase_index/GeoBase_Orthoimage_Index/test.shp"
-)
-a.build_items()
-print(a)
-a.geobase_stac.normalize_and_save(
-    "https://geobase-spot-dev.s3.amazonaws.com", CatalogType.ABSOLUTE_PUBLISHED
-)
-# GeobaseSTAC = build_items(
-#     "/Users/james/PycharmProjects/Prescient/PCI/NAPL/geobase_index/GeoBase_Orthoimage_Index/test.shp",
-#     GeobaseSTAC,
-# )
-# GeobaseSTAC.normalize_and_save(
-#     "https://geobase-spot-dev.s3.amazonaws.com", CatalogType.ABSOLUTE_PUBLISHED
-# )
-print("Finished")

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pystac import (
+    Band,
     STAC_IO,
     Catalog,
     Collection,
@@ -10,8 +11,6 @@ from pystac import (
     SpatialExtent,
     TemporalExtent,
 )
-
-SPOT_SENSOR = {"S4": "SPOT 4", "S5": "SPOT 5"}
 
 SpotProviders = [
     Provider(
@@ -46,6 +45,55 @@ SpotExtents = Extent(
     ),
 )
 
+SPOT_4_COMMON = {
+    "bands": [
+        Band(
+            name="Panchromatic",
+            description="Panchromatic: 610-680 nm",
+            common_name="panchromatic",
+        ),
+        Band(name="Green", description="Green: 500-590 nm", common_name="green"),
+        Band(name="Red", description="Red: 610-680 nm", common_name="red"),
+        Band(
+            name="Near Infrared",
+            description="Near Infrared: 780-890 nm",
+            common_name="nir",
+        ),
+        Band(
+            name="ShortWave Infrared",
+            description="ShortWave Infrared: 1580-1750 nm",
+            common_name="swir",
+        ),
+    ],
+    "platform": "SPOT 4",
+    "gsd": 20,  # Nominal GSD, see STAC spec
+    "instrument": "HRVIR",
+}
+
+SPOT_5_COMMON = {
+    "bands": [
+        Band(
+            name="Panchromatic",
+            description="Panchromatic: 480-710 nm",
+            common_name="panchromatic",
+        ),
+        Band(name="Green", description="Green: 500-590 nm", common_name="green"),
+        Band(name="Red", description="Red: 610-680 nm", common_name="red"),
+        Band(
+            name="Near Infrared",
+            description="Near Infrared: 780-890 nm",
+            common_name="nir",
+        ),
+        Band(
+            name="ShortWave Infrared",
+            description="ShortWave Infrared: 1580-1750 nm",
+            common_name="swir",
+        ),
+    ],
+    "platform": "SPOT 5",
+    "gsd": 20,  # Nominal GSD, see STAC spec
+    "instrument": "HVG",
+}
 
 GeobaseLicense = Link(
     "license",
@@ -61,14 +109,14 @@ def build_catalog():
     GeobaseCatalog = Catalog(
         id="Geobase",
         description="STAC Catalog for Geobase",
-        title="test",
+        title="STAC for Geobase",
         stac_extensions=None,
     )
 
     OrthoCatalog = Catalog(
         id="canada_spot_orthoimages",
         description="Orthoimages of Canada 2005-2010",
-        title="TEST",
+        title="STAC SPOT Orthoimages",
         stac_extensions=None,
     )
 
@@ -77,7 +125,7 @@ def build_catalog():
         description="SPOT 4 Orthoimages of Canada 2005-2010",
         extent=SpotExtents,
         title="SPOT 4 Orthoimages of Canada 2005-2010",
-        stac_extensions=None,
+        stac_extensions=["eo"],
         license="Proprietery",
         keywords="SPOT, Geobase, orthoimages",
         version="0.0.2",
@@ -89,7 +137,7 @@ def build_catalog():
         description="SPOT 5 Orthoimages of Canada 2005-2010",
         extent=SpotExtents,
         title="SPOT 5 Orthoimages of Canada 2005-2010",
-        stac_extensions=None,
+        stac_extensions=["eo"],
         license="Proprietery",
         keywords="SPOT, Geobase, orthoimages",
         version="0.0.2",

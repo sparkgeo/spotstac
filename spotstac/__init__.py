@@ -6,6 +6,8 @@ from urllib.parse import urlparse
 import boto3
 from pystac import STAC_IO
 
+from . import spotstac as SpotSTAC
+
 
 def read_remote_stacs(uri):
     """
