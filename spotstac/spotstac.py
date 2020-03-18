@@ -37,7 +37,7 @@ class Geobase(object):
         self.index_geom = index_geom
         self.geobase_stac = build_catalog()
 
-    def create_item(self, name, feature, collection, bands, instrument, platform, gsd):
+    def create_item(self, name, feature, collection):
         """
         name: SPOT ID
         feature: geojson feature
@@ -45,18 +45,13 @@ class Geobase(object):
         Create a STAC item for SPOT
         """
 
-        item = EOItem(
+        item = Item(
             id=name,
             geometry=feature["geometry"],
             bbox=list(bbox(feature)),
             properties={},
             datetime=datetime.strptime(name[14:22], "%Y%m%d"),
             collection=collection,
-            gsd=gsd,
-            constellation="SPOT",
-            platform=platform,
-            instrument=instrument,
-            bands=bands,
         )
         return item
 
@@ -120,13 +115,9 @@ class Geobase(object):
 
                 # Build item with appropriate references
                 if name[:2] == "S4":
-                    new_item = self.create_item(
-                        name, feature_out, SPOT4Collection, **SPOT_4_COMMON
-                    )
+                    new_item = self.create_item(name, feature_out, SPOT4Collection)
                 else:
-                    new_item = self.create_item(
-                        name, feature_out, SPOT5Collection, **SPOT_5_COMMON
-                    )
+                    new_item = self.create_item(name, feature_out, SPOT5Collection)
 
                 for f in geobase.list_contents(name):
                     # Add data to the asset
@@ -138,7 +129,7 @@ class Geobase(object):
                     )
 
                     if ("p10") in f:
-                        spot_file.bands = ["0"]
+                        spot_file.bands = [0]
 
                     file_key = f[-13:-4]  # image type
                     new_item.add_asset(file_key, spot_file)

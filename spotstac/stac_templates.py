@@ -20,16 +20,13 @@ SpotProviders = [
         "https://open.canada.ca/data/en/dataset/d799c202-603d-4e5c-b1eb-d058803f80f9",
     ),
     Provider(
+        "PCI Geomatics", "info@pci.com", ["processor"], "https://www.pcigeomatics.com"
+    ),
+    Provider(
         "Sparkgeo",
         "info@sparkegeo.com",
         ["processor", "host"],
         "https://www.sparkgeo.com",
-    ),
-    Provider(
-        "PCI Geomatics",
-        "info@pci.com",
-        ["processor", "host"],
-        "https://www.pcigeomatics.com",
     ),
 ]
 
@@ -46,53 +43,57 @@ SpotExtents = Extent(
 )
 
 SPOT_4_COMMON = {
-    "bands": [
+    "platform": "SPOT 4",
+    "instruments": ["HRVIR"],
+    "constellation": "SPOT",
+    "eo:gsd": 20,  # Nominal GSD, see STAC spec
+    "eo:bands": [
         Band(
-            name="Panchromatic",
-            description="Panchromatic: 610-680 nm",
-            common_name="panchromatic",
-        ),
-        Band(name="Green", description="Green: 500-590 nm", common_name="green"),
-        Band(name="Red", description="Red: 610-680 nm", common_name="red"),
+            name="Panchromatic", description="Panchromatic: 610-680 nm", common_name="pan"
+        ).to_dict(),
+        Band(
+            name="Green", description="Green: 500-590 nm", common_name="green"
+        ).to_dict(),
+        Band(name="Red", description="Red: 610-680 nm", common_name="red").to_dict(),
         Band(
             name="Near Infrared",
             description="Near Infrared: 780-890 nm",
             common_name="nir",
-        ),
+        ).to_dict(),
         Band(
             name="ShortWave Infrared",
             description="ShortWave Infrared: 1580-1750 nm",
             common_name="swir",
-        ),
+        ).to_dict(),
     ],
-    "platform": "SPOT 4",
-    "gsd": 20,  # Nominal GSD, see STAC spec
-    "instrument": "HRVIR",
 }
 
 SPOT_5_COMMON = {
-    "bands": [
+    "platform": "SPOT 5",
+    "instruments": ["HVG"],
+    "constellation": "SPOT",
+    "eo:gsd": 20,  # Nominal GSD, see STAC spec
+    "eo:bands": [
         Band(
             name="Panchromatic",
             description="Panchromatic: 480-710 nm",
             common_name="panchromatic",
-        ),
-        Band(name="Green", description="Green: 500-590 nm", common_name="green"),
-        Band(name="Red", description="Red: 610-680 nm", common_name="red"),
+        ).to_dict(),
+        Band(
+            name="Green", description="Green: 500-590 nm", common_name="green"
+        ).to_dict(),
+        Band(name="Red", description="Red: 610-680 nm", common_name="red").to_dict(),
         Band(
             name="Near Infrared",
             description="Near Infrared: 780-890 nm",
             common_name="nir",
-        ),
+        ).to_dict(),
         Band(
             name="ShortWave Infrared",
             description="ShortWave Infrared: 1580-1750 nm",
             common_name="swir",
-        ),
+        ).to_dict(),
     ],
-    "platform": "SPOT 5",
-    "gsd": 20,  # Nominal GSD, see STAC spec
-    "instrument": "HVG",
 }
 
 GeobaseLicense = Link(
@@ -125,11 +126,12 @@ def build_catalog():
         description="SPOT 4 Orthoimages of Canada 2005-2010",
         extent=SpotExtents,
         title="SPOT 4 Orthoimages of Canada 2005-2010",
-        stac_extensions=["eo"],
+        stac_extensions=["commons"],
         license="Proprietery",
         keywords="SPOT, Geobase, orthoimages",
-        version="0.0.2",
+        version="0.0.3",
         providers=SpotProviders,
+        properties=SPOT_4_COMMON,
     )
 
     SPOT5Collection = Collection(
@@ -137,11 +139,12 @@ def build_catalog():
         description="SPOT 5 Orthoimages of Canada 2005-2010",
         extent=SpotExtents,
         title="SPOT 5 Orthoimages of Canada 2005-2010",
-        stac_extensions=["eo"],
+        stac_extensions=["commons"],
         license="Proprietery",
         keywords="SPOT, Geobase, orthoimages",
-        version="0.0.2",
+        version="0.0.3",
         providers=SpotProviders,
+        properties=SPOT_5_COMMON,
     )
 
     GeobaseCatalog.add_child(OrthoCatalog)
